@@ -1,0 +1,58 @@
+module(mirth/codegen/common)
+
+import(prelude)
+import(mirth/data/name)
+import(mirth/data/token)
+
+###########
+# Codegen #
+###########
+
+def(CODEGEN_BUF_SIZE, Size, 0x2000)
+
+|File| def-static-buffer(CODEGEN_FILE)
+quad def-static-buffer(CODEGEN_LENGTH)
+CODEGEN_BUF_SIZE def-static-buffer(CODEGEN_BUF)
+
+def(codegen-file@, -- File +Codegen, CODEGEN_FILE file@)
+def(codegen-file!, File -- +Codegen, CODEGEN_FILE file!)
+def(codegen-length@, -- Size +Codegen, CODEGEN_LENGTH @)
+def(codegen-length!, Size -- +Codegen, CODEGEN_LENGTH !)
+def(codegen-u8@, Offset -- Byte +Codegen, CODEGEN_BUF u8@@)
+def(codegen-u8!, Byte Offset -- +Codegen, CODEGEN_BUF u8!!)
+
+def(codegen-full?, Bool +Codegen,
+    codegen-length@ CODEGEN_BUF_SIZE >=)
+
+def(codegen-flush!, +Codegen,
+    codegen-length@ 0 > if(
+        codegen-file@ File->Int CODEGEN_BUF codegen-length@ posix-write!
+        0 codegen-length!,
+        id
+    ))
+
+def(.b, Byte -- +Codegen,
+    codegen-full? if(codegen-flush!, id)
+    codegen-length@ dup 1+ codegen-length! codegen-u8!)
+
+def(., Str -- +Codegen, while(dup u8@ U8->Int, dup u8@ .b str-tail) drop)
+
+def(codegen-start!, File -- +Codegen,
+    codegen-file! 0 codegen-length!)
+
+def(codegen-end!, +Codegen,
+    codegen-flush!
+    codegen-file@ close-file!
+    stdout codegen-file!
+    0 codegen-length!)
+
+def(.lf, +Codegen, 10 Int->U8 .b)
+def(;, Str -- +Codegen, . .lf)
+def(;;, Str -- +Codegen, . .lf .lf)
+def(.n, Int -- +Codegen, str-buf-int! STR_BUF .)
+def(.d, +Codegen, c99-depth@ .n)
+def(.name, Name -- +Codegen, name-mangle! STR_BUF .)
+
+def(.w, Name -- +IO,
+    "void mw" . .name " (void)" .)
+def(.p, Prim -- +IO, Prim->Name .w)

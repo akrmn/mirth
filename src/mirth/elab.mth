@@ -208,7 +208,7 @@ def(elab-stack-pop!, Type +Elab,
     type-is-tensor? if(
         type-get-tensor tensor-type-unpack,
 
-        "(temporary?) stack underflow" elab-emit-warning!
+        "Stack underflow" elab-emit-error!
         drop TYPE_ERROR TYPE_ERROR
     )))
     dip(elab-stack!))
@@ -268,7 +268,7 @@ def(elab-arrow-step-name!, Arrow Name -- Arrow +Elab,
         Name->Prim elab-arrow-step-prim!,
 
         drop
-        "Unknown word" elab-emit-error!
+        "Word is undefined." elab-emit-error!
         TYPE_ERROR elab-stack!
     )))))
 

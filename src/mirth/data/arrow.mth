@@ -42,8 +42,8 @@ def(ARROW_NIL, Arrow, 0 Int->Arrow)
 def(MAX_ARROWS, Size, 0x20000)
 quad def-static-buffer(NUM_ARROWS)
 def(arrow-alloc!, Arrow,
-    NUM_ARROWS @ dup 1+ dup NUM_ARROWS !
-    MAX_ARROWS >= if(
+    NUM_ARROWS @ 1+ dup NUM_ARROWS !
+    dup MAX_ARROWS >= if(
         "Compiler error: Ran out of arrows! Increase MAX_ARROWS!" panic!,
         Int->Arrow
     ))
